@@ -18,7 +18,7 @@ Build-Depends:
  xz-utils,
  zlib1g-dev,
 Rules-Requires-Root: no
-Standards-Version: 4.6.2
+Standards-Version: 4.7.0
 Vcs-Git: https://salsa.debian.org/debian/binutils-or1k-elf.git
 Vcs-Browser: https://salsa.debian.org/debian/binutils-or1k-elf
 Homepage: https://sourceware.org/binutils/

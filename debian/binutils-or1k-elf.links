@@ -1,7 +1,7 @@
 #!/bin/sh
 set -C -e -u
 
-gnu_type=or1k-elf
+gnu_type=$(sed '/^gnu_type *= */ !d; s///; q' debian/rules)
 
 # For each executable in the path, provide a manual page as a symbolic
 # link to the one from binutils-common.

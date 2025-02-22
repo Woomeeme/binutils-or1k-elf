@@ -2,10 +2,13 @@
 
 # https://wiki.debian.org/PackagingLessCommonBinutilsTargets
 
-include /usr/share/dpkg/architecture.mk
-include /usr/share/dpkg/pkg-info.mk
+# Prevent new compiler warnings from breaking the build (#1089190).
+DEB_CFLAGS_MAINT_APPEND := -Wno-error
 
-export DEB_BUILD_MAINT_OPTIONS := hardening=+all
+DEB_BUILD_MAINT_OPTIONS := hardening=+all
+DPKG_EXPORT_BUILDFLAGS := 1
+include /usr/share/dpkg/buildflags.mk
+include /usr/share/dpkg/pkg-info.mk
 
 # The GNU triplet determines Debian package names, but not the other
 # way around because GNU triplets may contain underscore characters.
@@ -29,6 +32,7 @@ src:
   # Apply patches here with 'patch -dsrc -p1 < $patch'.
 
 # _GCC_AUTOCONF_VERSION_CHECK in config/override.m4 requires 2.69.
+# Seen with 2.42-4.
 override_dh_autoreconf:
 	dh_autoreconf -D. autoreconf2.69 -- -f -i -v `debian/autoreconf`
 
@@ -50,12 +54,11 @@ confargs += --disable-nls
 # https://tests.reproducible-builds.org/debian/issues/unstable/timestamps_in_static_libraries_issue.html
 confargs += --enable-deterministic-archives
 
+# autoconf2.69 fails on the --runstatedir argument.
 override_dh_auto_configure:
-  # Imitate dh_auto_configure -- $(confargs), but without
-  # --runstatedir as long as libiberty/configure cannot be refreshed.
 	install -d bld
-	cd bld && ../src/configure --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --includedir=/usr/include --mandir=/usr/share/man --infodir=/usr/share/info --sysconfdir=/etc --localstatedir=/var --disable-option-checking --disable-silent-rules --libdir=/usr/lib/$(DEB_HOST_GNU_TYPE) --disable-maintainer-mode --disable-dependency-tracking \
-	$(confargs)
+	$(filter-out --runstatedir=/run, \
+	  $(shell dh_auto_configure -Dsrc -Bbld --no-act)) $(confargs)
 
 # Disable tests, until someone fixes
 # https://buildd.debian.org/status/fetch.php?pkg=binutils-or1k-elf&arch=mips64el&ver=1.0.4&stamp=1656249446&raw=0
